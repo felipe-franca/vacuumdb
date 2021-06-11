@@ -16,7 +16,7 @@ for db in $@; do
     CONTAINER="$(docker ps | grep db: | cut  -d ' ' -f1)"
     PSQL="/bin/docker exec -i $CONTAINER psql -U postgres -d $DB -c"
     EXIT_CODE=0
-    KILL_LONG_CONNECTIONS="SELECT pg_terminate_backend(procpid) FROM pg_stat_activity WHERE query_start < ( now() - INTERVAL '2 hours' )"
+    KILL_LONG_CONNECTIONS="SELECT pg_terminate_backend(procpid) FROM pg_stat_activity WHERE query_start < ( now() - INTERVAL '2 hours'  and datname = '$DB')"
 
     MAIN_TABLES=(
         "sincronizacao_enterprise"
@@ -95,7 +95,7 @@ for db in $@; do
 
     $DOLOG "[INFO] Cheking long connections . . ."
 
-    HAVE_LONG_CON=$($PSQL "SELECT count(procpid) FROM pg_catalog.pg_stat_activity WHERE query_start <= (now() - INTERVAL '2 hours');" --tuples-only | sed 's/ //g')
+    HAVE_LONG_CON=$($PSQL "SELECT count(procpid) FROM pg_catalog.pg_stat_activity WHERE query_start <= (now() - INTERVAL '2 hours') and datname like '$DB';" --tuples-only | sed 's/ //g')
 
     $DOLOG "[DEBUG] QTD long connectios: $HAVE_LONG_CON "
 

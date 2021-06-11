@@ -146,7 +146,7 @@ for db in $@; do
 
         else
             $DOLOG "[WARN] Unknow Operation."
-            break;
+            continue;
         fi
 
         if [ ! $EXIT_CODE -eq 0 ]; then

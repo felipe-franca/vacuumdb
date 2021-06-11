@@ -1,16 +1,12 @@
 #!/usr/bin/env sh
 
-if [ -e "/etc/rsyslog.d/dbmaintenance.conf" ]; then
-    break;
-else
+if [ ! -e "/etc/rsyslog.d/dbmaintenance.conf" ]; then
     echo -e "local0.*\t/var/log/dbmaintenance.log" > /etc/rsyslog.d/dbmaintenance.conf;
     systemctl restart rsyslog.service
 fi
 
-echo > /var/log/dbmaintenance.log
-
 DOLOG="logger -p local0.debug -t [DEBUG] [$0] "
-$DOLOG "[INFO] Logger init."
+$DOLOG "[INFO] >>>> Logger Init <<<<<"
 exec 1>>/var/log/dbmaintenance.log
 exec 2>&1
 
@@ -20,6 +16,7 @@ for db in $@; do
     CONTAINER="$(docker ps | grep db: | cut  -d ' ' -f1)"
     PSQL="/bin/docker exec -i $CONTAINER psql -U postgres -d $DB -c"
     EXIT_CODE=0
+    KILL_LONG_CONNECTIONS="SELECT pg_terminate_backend(procpid) FROM pg_stat_activity WHERE query_start < ( now() - INTERVAL '2 hours' )"
 
     MAIN_TABLES=(
         "sincronizacao_enterprise"
@@ -94,7 +91,24 @@ for db in $@; do
         fi
     }
 
-    $DOLOG "Container id - $CONTAINER - database: $DB"
+    $DOLOG "Maintenance will be started on Container id - $CONTAINER - database: $DB"
+
+    $DOLOG "[INFO] Cheking long connections . . ."
+
+    HAVE_LONG_CON=$($PSQL "SELECT count(procpid) FROM pg_catalog.pg_stat_activity WHERE query_start <= (now() - INTERVAL '2 hours');" --tuples-only | sed 's/ //g')
+
+    $DOLOG "[DEBUG] QTD long connectios: $HAVE_LONG_CON "
+
+    [ "$HAVE_LONG_CON" ] || { HAVE_LONG_CON=0 }
+
+    if [ $HAVE_LONG_CON -gt 0 ]; then
+        $DOLOG "[INFO] Killing longconnections . . ."
+            $DOLOG "[DEBUG] QUERY: $PSQL $KILL_LONG_CONNECTIONS "
+            $PSQL $KILL_LONG_CONNECTIONS
+        $DOLOG "[INFO] Done !"
+    else
+        $DOLOG "[INFO] No long connectios found !"
+    fi
 
     $DOLOG "[INFO] Maintenance tables:: ${MAIN_TABLES[@]}"
     $DOLOG "[INFO] Tables to be truncated: ${TRUNC_TABLES[@]}"
@@ -139,4 +153,6 @@ for db in $@; do
             $DOLOG "[ERROR] Exit code: $EXIT_CODE on operation ${OPERATION[i]}."
         fi
     done
+
+    $DOLOG "[INFO] >>>> Maintenance Finished on database $DB <<<<<"
 done

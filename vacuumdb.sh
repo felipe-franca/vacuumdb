@@ -99,7 +99,7 @@ for db in $@; do
 
     $DOLOG "[DEBUG] QTD long connectios: $HAVE_LONG_CON "
 
-    [ "$HAVE_LONG_CON" ] || { HAVE_LONG_CON=0 }
+    [ "$HAVE_LONG_CON" ] || HAVE_LONG_CON=0
 
     if [ $HAVE_LONG_CON -gt 0 ]; then
         $DOLOG "[INFO] Killing longconnections . . ."

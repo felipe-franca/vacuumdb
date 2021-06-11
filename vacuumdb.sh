@@ -104,7 +104,7 @@ for db in $@; do
     if [ $HAVE_LONG_CON -gt 0 ]; then
         $DOLOG "[INFO] Killing longconnections . . ."
             $DOLOG "[DEBUG] QUERY: $PSQL $KILL_LONG_CONNECTIONS "
-            $PSQL $KILL_LONG_CONNECTIONS
+            $PSQL "$KILL_LONG_CONNECTIONS"
         $DOLOG "[INFO] Done !"
     else
         $DOLOG "[INFO] No long connectios found !"

@@ -16,7 +16,7 @@ for db in $@; do
     CONTAINER="$(docker ps | grep db: | cut  -d ' ' -f1)"
     PSQL="/bin/docker exec -i $CONTAINER psql -U postgres -d $DB -c"
     EXIT_CODE=0
-    KILL_LONG_CONNECTIONS="SELECT pg_terminate_backend(procpid) FROM pg_stat_activity WHERE query_start < ( now() - INTERVAL '2 hours'  and datname = '$DB')"
+    KILL_LONG_CONNECTIONS="SELECT pg_terminate_backend(procpid) FROM pg_stat_activity WHERE query_start <= ( now() - INTERVAL '2 hours')  and datname = '$DB'"
 
     MAIN_TABLES=( "sincronizacao_enterprise" "ticketmobile" "cartoes" "ociosidade"
                   "ociosidadeporgrupo" "valorcontador" "lot" "movimento_por_horario"

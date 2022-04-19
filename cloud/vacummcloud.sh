@@ -17,8 +17,6 @@ for db in $dbs; do
     execParams() {
         local ARRAY_ARGS=("${!2}")
 
-        echo "array_args $ARRAY_ARGS"
-
         if [ "$1" = "QUERY" ]; then
             echo "[INFO] Parameters passed to function execParams: $1 | ${#ARRAY_ARGS[@]}"
             echo "[INFO] Perform operation: $1"

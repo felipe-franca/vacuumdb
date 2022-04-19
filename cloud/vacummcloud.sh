@@ -1,7 +1,7 @@
 #!/usr/bin/env sh
 
 export PGUSER=postgres
-export PGPASSWORD=
+export PGPASSWORD=#change it
 
 HOST_IP="10.27.192.3"
 PSQL="psql -U postgres -h $HOST_IP -c "
